@@ -1,45 +1,26 @@
-from typing import Optional
+from dotenv import dotenv_values
 
-from pydantic import Field
-from pydantic_settings import BaseSettings
+# Load environment variables from .env file
+config = dotenv_values(".env")
 
+# Database configuration
+DB_URL = config.get("POSTGRES_URL", "")
 
-class Settings(BaseSettings):
-    """Application settings"""
+# API settings
+API_PORT = int(config.get("API_PORT", "8002"))
+API_HOST = config.get("API_HOST", "0.0.0.0")
+API_KEY = config.get("API_KEY", "")
 
-    # API Configuration
-    API_V1_STR: str = "/api/v1"
-    PROJECT_NAME: str = "Document AI Assistant API"
+# LLM Provider settings
+DO_API_URL = config.get(
+    "DO_API_URL", "https://agent-9d0a55ab65f61611182c-p7e2w.ondigitalocean.app"
+)
+DO_API_KEY = config.get("DO_API_KEY", "")
 
-    # Embedding API Configuration
-    EMBEDDING_API_URL: str = Field(None, env="API_URL")
-    EMBEDDING_API_KEY: Optional[str] = Field(None, env="API_KEY")
+# Ollama settings
+OLLAMA_API_URL = config.get("OLLAMA_API_URL", "http://localhost:11434/api/generate")
+OLLAMA_MODEL = config.get("OLLAMA_MODEL", "deepseek-r1")
 
-    # Digital Ocean GenAI Agent API configuration
-    DO_API_URL: str = Field(None, env="DO_API_URL")
-    DO_API_KEY: str = Field(None, env="DO_API_KEY")
-    DO_CHATBOT_ID: str = Field(None, env="DO_CHATBOT_ID")
-
-    # Ollama Configuration
-    OLLAMA_API_URL: str = Field(None, env="OLLAMA_API_URL")
-    OLLAMA_MODEL: str = Field(None, env="OLLAMA_MODEL")
-    OLLAMA_MODEL_TITLE: str = Field(None, env="OLLAMA_MODEL_TITLE")
-
-    # Database Configuration
-    POSTGRES_SERVER: str = Field(None, env="POSTGRES_SERVER")
-    POSTGRES_PORT: str = Field(None, env="POSTGRES_PORT")
-    POSTGRES_USER: str = Field(None, env="POSTGRES_USER")
-    POSTGRES_PASSWORD: str = Field(None, env="POSTGRES_PASSWORD")
-    POSTGRES_DB: str = Field(None, env="POSTGRES_DB")
-
-    @property
-    def DATABASE_URL(self) -> str:
-        """Get database connection string"""
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-
-
-settings = Settings()
+# Embedding API settings
+EMBEDDING_API_URL = config.get("API_URL", "http://localhost:8001")
+EMBEDDING_API_KEY = config.get("API_KEY", "")

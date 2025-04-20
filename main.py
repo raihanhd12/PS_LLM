@@ -1,11 +1,10 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import logging
 import subprocess
-import sys
 
-from app.api.v1.api import api_router
-from app.core.config import settings
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.v1.endpoints import router
 from app.db.session import init_db
 
 # Configure logging
@@ -16,8 +15,10 @@ logging.basicConfig(
 
 # Initialize the FastAPI app
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    title="Document AI Assistant API",
+    description="API for document search and AI-powered question answering",
+    version="1.0.0",
+    openapi_url="/api/v1/openapi.json",
 )
 
 # Add CORS middleware
@@ -29,8 +30,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API router
-app.include_router(api_router, prefix=settings.API_V1_STR)
+# Include API router directly from endpoints
+app.include_router(router, prefix="/api/v1")
 
 
 @app.on_event("startup")
@@ -61,18 +62,5 @@ async def root():
     return {
         "message": "Welcome to Document AI Assistant API",
         "version": "1.0.0",
-        "docs": f"/docs",
-    }
-
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "ok",
-        "services": {
-            "api": "running",
-            "db": "connected",  # This would ideally check DB connection
-            "embedding": "available",  # This would ideally check embedding service
-        },
+        "docs": "/docs",
     }

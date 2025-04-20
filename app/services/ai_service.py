@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Optional
 
 import requests
 
-from app.core.config import settings
+import app.core.config as config
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class AIService:
         try:
             headers = {
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {settings.DO_API_KEY}",
+                "Authorization": f"Bearer {config.DO_API_KEY}",
             }
 
             # Structured prompt for consistent output with emphasis on detailed answers
@@ -75,7 +75,7 @@ class AIService:
             }
 
             # Use the working API endpoint
-            api_endpoint = f"{settings.DO_API_URL}/api/v1/chat/completions"
+            api_endpoint = f"{config.DO_API_URL}/api/v1/chat/completions"
 
             # Show debug information if requested
             if debug_mode:
@@ -229,7 +229,7 @@ class AIService:
         """
         prompt = f"Documents:\n{context}\n\nUser Question: {query}"
         payload = {
-            "model": settings.OLLAMA_MODEL,
+            "model": config.OLLAMA_MODEL,
             "prompt": prompt,
             "system": system_prompt,
             "stream": stream_callback is not None,
@@ -244,7 +244,7 @@ class AIService:
     def _handle_ollama_normal_response(cls, payload: Dict[str, Any]) -> str:
         """Handle normal (non-streaming) response from Ollama"""
         try:
-            response = requests.post(settings.OLLAMA_API_URL, json=payload)
+            response = requests.post(config.OLLAMA_API_URL, json=payload)
             response.raise_for_status()
             result = response.json()
             return result.get("response", "")
@@ -260,9 +260,7 @@ class AIService:
         full_response = ""
 
         try:
-            with requests.post(
-                settings.OLLAMA_API_URL, json=payload, stream=True
-            ) as response:
+            with requests.post(config.OLLAMA_API_URL, json=payload, stream=True) as response:
                 response.raise_for_status()
                 for line in response.iter_lines():
                     if line:
@@ -300,7 +298,7 @@ class AIService:
             if provider == LLMProvider.DIGITAL_OCEAN:
                 headers = {
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {settings.DO_API_KEY}",
+                    "Authorization": f"Bearer {config.DO_API_KEY}",
                 }
                 payload = {
                     "messages": [{"role": "user", "content": prompt}],
@@ -309,7 +307,7 @@ class AIService:
                     "stream": False,
                 }
                 response = requests.post(
-                    f"{settings.DO_API_URL}/api/v1/chat/completions",
+                    f"{config.DO_API_URL}/api/v1/chat/completions",
                     headers=headers,
                     json=payload,
                 )
@@ -317,11 +315,11 @@ class AIService:
                 return response.json()["choices"][0]["message"]["content"].strip()
             else:  # provider == LLMProvider.OLLAMA
                 payload = {
-                    "model": settings.OLLAMA_MODEL,
+                    "model": config.OLLAMA_MODEL,
                     "prompt": prompt,
                     "stream": False,
                 }
-                response = requests.post(settings.OLLAMA_API_URL, json=payload)
+                response = requests.post(config.OLLAMA_API_URL, json=payload)
                 response.raise_for_status()
                 return response.json().get("response", "Untitled Chat").strip()
         except requests.RequestException as e:
