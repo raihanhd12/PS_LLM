@@ -1,10 +1,12 @@
 import logging
 import subprocess
 
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.endpoints import router
+from app.core.config import API_HOST, API_PORT
 from app.db.session import init_db
 
 # Configure logging
@@ -64,3 +66,12 @@ async def root():
         "version": "1.0.0",
         "docs": "/docs",
     }
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host=API_HOST,
+        port=API_PORT,
+        reload=True,
+    )
