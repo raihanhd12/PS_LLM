@@ -23,4 +23,4 @@ OLLAMA_MODEL = config.get("OLLAMA_MODEL", "deepseek-r1")
 
 # Embedding API settings
 EMBEDDING_API_URL = config.get("API_URL", "http://localhost:8001")
-EMBEDDING_API_KEY = config.get("API_KEY", "")
+EMBEDDING_API_KEY = config.get("EMBEDDING_KEY", "")

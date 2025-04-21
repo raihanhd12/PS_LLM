@@ -90,56 +90,145 @@ API_KEY=your_embedding_api_key
 # LLM Providers
 DO_API_URL=https://agent-url.ondigitalocean.app
 DO_API_KEY=your_digital_ocean_api_key
-DO_CHATBOT_ID=your_chatbot_id
 OLLAMA_API_URL=http://localhost:11434/api/generate
 OLLAMA_MODEL=deepseek-r1
 
 # PostgreSQL Database
-POSTGRES_SERVER=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=doc_assistant
+POSTGRES_URL=postgresql://username:password@localhost:5432/doc_assistant
+API_PORT=8002
+API_HOST=0.0.0.0
 ```
 
-5. Set up the database:
+5. Set up alembic for database migrations:
 
 ```bash
-# Create PostgreSQL database
-createdb doc_assistant
+# Install alembic if not already installed
+pip install alembic
 
-# Run database migrations
+# Initialize alembic
+alembic init migrations
+
+# Edit migrations/env.py to import your models
+# Add these lines to migrations/env.py:
+from app.db.session import Base
+from app.core.config import DB_URL
+target_metadata = Base.metadata
+config.set_main_option("sqlalchemy.url", DB_URL)
+
+# Create initial migration
+alembic revision --autogenerate -m "Initial migration"
+
+# Apply migrations
 alembic upgrade head
 ```
 
-### Running the Service
-
-Start the service with:
+6. Start the service:
 
 ```bash
 python main.py
 ```
 
-The API will be available at `http://localhost:8000`.
-API documentation is available at `http://localhost:8000/docs`.
+The API will be available at `http://localhost:8002` with documentation at `http://localhost:8002/docs`.
 
-## API Endpoints
+## API Usage Guide
 
-### Document Management
+### 1. Chat Query Endpoint
 
-- `GET /api/v1/documents/` - Get all documents
-- `POST /api/v1/documents/upload` - Upload a document
-- `POST /api/v1/documents/search` - Search for relevant document chunks
+Use this endpoint to ask questions about your documents:
 
-### Chat
+```
+POST /api/v1/chat/query
+```
 
-- `POST /api/v1/chat/query` - Process a query and generate a response
-- `GET /api/v1/chat/history` - Get all chat history
-- `GET /api/v1/chat/history/{chat_id}` - Get a specific chat by ID
+**Request body**:
 
-## Development
+```json
+{
+  "query": "What are the main features of this application?",
+  "context_limit": 3,
+  "document_id": "all",
+  "provider": "Digital Ocean",
+  "debug_mode": false
+}
+```
 
-### Project Structure
+Parameters:
+
+- `query`: Your question text
+- `context_limit`: Number of relevant document chunks to use (1-10)
+- `document_id`: Filter by document ID or use "all"
+- `provider`: LLM provider ("Digital Ocean" or "Ollama")
+- `debug_mode`: Enable detailed logging
+
+**Response**:
+
+```json
+{
+  "id": 1,
+  "query": "What are the main features of this application?",
+  "response": "The main features of this application include...",
+  "sources": [
+    {
+      "id": "doc1",
+      "score": 0.89,
+      "metadata": {
+        "filename": "README.md"
+      },
+      "text": "Feature text snippet..."
+    }
+  ],
+  "title": "Application Features",
+  "timestamp": "2025-04-21 06:55:00"
+}
+```
+
+### 2. Streaming Responses
+
+For real-time streaming responses, add the `stream=true` query parameter:
+
+```
+POST /api/v1/chat/query?stream=true
+```
+
+This returns a Server-Sent Event stream with partial response chunks.
+
+### 3. Chat History
+
+Retrieve all chat history:
+
+```
+GET /api/v1/chat/history
+```
+
+Get a specific chat by ID:
+
+```
+GET /api/v1/chat/history/{chat_id}
+```
+
+### 4. Health Check
+
+Check API status:
+
+```
+GET /api/v1/health
+```
+
+## Example Usage with curl
+
+```bash
+# Simple query
+curl -X POST http://localhost:8002/api/v1/chat/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What features does this API provide?", "provider": "Digital Ocean"}'
+
+# Streaming response
+curl -X POST http://localhost:8002/api/v1/chat/query?stream=true \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Explain the architecture", "provider": "Ollama"}'
+```
+
+## Project Structure
 
 ```
 app/
@@ -151,14 +240,6 @@ app/
 ├── db/ - Database interactions
 ├── core/ - Configuration and constants
 └── utils/ - Helper functions
-```
-
-### Testing
-
-To run tests:
-
-```bash
-pytest
 ```
 
 ## License

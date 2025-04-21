@@ -10,7 +10,7 @@ import app.core.config as config
 from app.models.chat import ChatHistory, Source
 
 # Create SQLAlchemy engine and session factory
-engine = create_engine(config.DATABASE_URL)
+engine = create_engine(config.DB_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for SQLAlchemy models
