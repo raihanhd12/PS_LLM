@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 import src.config.env as env
 from src.app.models.llm_models import ChatHistory, Source
-from src.database.factories.chat_factory import ChatHistoryModel
+from src.database.factories.chat_factory import Base, ChatHistoryModel
 
 # Create SQLAlchemy engine and session factory
 engine = create_engine(env.DB_URL)
@@ -19,9 +19,7 @@ class DatabaseService:
     @staticmethod
     def init_db():
         """Initialize the database and create tables"""
-        from src.database.factories.chat_factory import init_db
-
-        init_db()
+        Base.metadata.create_all(bind=engine)
 
     @staticmethod
     def get_db():
@@ -33,7 +31,7 @@ class DatabaseService:
             db.close()
 
     @classmethod
-    def save_chat_to_db(chat: ChatHistory) -> int:
+    def save_chat_to_db(cls, chat: ChatHistory) -> int:
         """Save a chat entry to the database"""
         with DatabaseService.get_db() as db:
             # Convert sources to JSON string
@@ -56,7 +54,7 @@ class DatabaseService:
             return chat_model.id
 
     @classmethod
-    def load_chat_history_from_db() -> List[ChatHistory]:
+    def load_chat_history_from_db(cls) -> List[ChatHistory]:
         """Load all chat history from the database"""
         with DatabaseService.get_db() as db:
             chat_models = db.query(ChatHistoryModel).all()
@@ -83,7 +81,7 @@ class DatabaseService:
             return chat_history
 
     @classmethod
-    def get_chat_by_id(chat_id: int) -> Optional[ChatHistory]:
+    def get_chat_by_id(cls, chat_id: int) -> Optional[ChatHistory]:
         """Get a specific chat by ID"""
         with DatabaseService.get_db() as db:
             chat_model = (

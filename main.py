@@ -6,8 +6,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.config.env import API_HOST, API_PORT, DB_URL
-from src.app.services.database_services import init_db
+import src.config.env as env
+from src.app.services.database_services import DatabaseService
 from src.routes.api.v1 import router
 
 # Configure logging
@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
     """Lifespan events manager for application startup and shutdown"""
     # Startup logic
     try:
-        if not DB_URL:
+        if not env.DB_URL:
             logging.error(
                 "Database URL is not configured. Set POSTGRES_URL in the .env file."
             )
@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
                 logging.info(f"Migration result: {result.stdout}")
 
                 # Initialize database
-                init_db()
+                DatabaseService.init_db()
                 logging.info("Database initialized successfully")
             except subprocess.CalledProcessError as e:
                 logging.error(f"Migration error: {e.stderr}")
@@ -91,4 +91,4 @@ async def root():
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host=API_HOST, port=API_PORT)
+    uvicorn.run("main:app", host=env.API_HOST, port=env.API_PORT)

@@ -1,13 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, engine
+from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 # Base class for SQLAlchemy models
 Base = declarative_base()
-
-def init_db():
-    """Initialize database and create tables"""
-    Base.metadata.create_all(bind=engine)
-
 
 # Define SQLAlchemy model for chat history
 class ChatHistoryModel(Base):

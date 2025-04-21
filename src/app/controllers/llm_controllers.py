@@ -14,7 +14,7 @@ class LLMController:
     @staticmethod
     def get_chat_history() -> List[Dict[str, Any]]:
         """Get all chat history"""
-        chat_history = DatabaseService.get_chat_history()
+        chat_history = DatabaseService.load_chat_history_from_db()
 
         # Convert to dict representation
         history_data = []
