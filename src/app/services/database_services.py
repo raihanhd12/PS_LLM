@@ -1,4 +1,5 @@
 import json
+from contextlib import contextmanager
 from typing import List, Optional
 
 from sqlalchemy import create_engine
@@ -22,8 +23,9 @@ class DatabaseService:
         Base.metadata.create_all(bind=engine)
 
     @staticmethod
+    @contextmanager
     def get_db():
-        """Get a database session"""
+        """Get a database session as a context manager"""
         db = SessionLocal()
         try:
             yield db
@@ -33,7 +35,7 @@ class DatabaseService:
     @classmethod
     def save_chat_to_db(cls, chat: ChatHistory) -> int:
         """Save a chat entry to the database"""
-        with DatabaseService.get_db() as db:
+        with cls.get_db() as db:
             # Convert sources to JSON string
             sources_json = json.dumps([s.dict() for s in chat.sources])
 
@@ -56,7 +58,7 @@ class DatabaseService:
     @classmethod
     def load_chat_history_from_db(cls) -> List[ChatHistory]:
         """Load all chat history from the database"""
-        with DatabaseService.get_db() as db:
+        with cls.get_db() as db:
             chat_models = db.query(ChatHistoryModel).all()
 
             # Convert DB models to ChatHistory objects
@@ -83,7 +85,7 @@ class DatabaseService:
     @classmethod
     def get_chat_by_id(cls, chat_id: int) -> Optional[ChatHistory]:
         """Get a specific chat by ID"""
-        with DatabaseService.get_db() as db:
+        with cls.get_db() as db:
             chat_model = (
                 db.query(ChatHistoryModel)
                 .filter(ChatHistoryModel.id == chat_id)

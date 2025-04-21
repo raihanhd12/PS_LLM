@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from src.app.schemas.llm_schema import QueryRequest, QueryResponse, SourceResponse
 from src.app.services.database_services import DatabaseService
@@ -50,14 +50,11 @@ class LLMController:
         }
 
     @classmethod
-    def process_query(
-        cls,
-        query_request: QueryRequest,
-        stream_callback: Optional[Callable[[str], None]] = None,
-    ) -> QueryResponse:
+    async def process_query(cls, query_request: QueryRequest, stream_callback=None):
         """Process a user query"""
         logger.info(f"Processing query: {query_request.query}")
 
+        # Proses query dan kembalikan hasilnya
         response_data = LLMService.process_query(
             query=query_request.query,
             context_limit=query_request.context_limit,
@@ -67,11 +64,9 @@ class LLMController:
             debug_mode=query_request.debug_mode,
         )
 
-        # Convert sources to source response objects
+        # Konversi hasil
         sources = [SourceResponse(**source) for source in response_data["sources"]]
-
-        # Create query response
-        query_response = QueryResponse(
+        return QueryResponse(
             id=response_data["id"],
             query=response_data["query"],
             response=response_data["response"],
@@ -79,5 +74,3 @@ class LLMController:
             title=response_data["title"],
             timestamp=response_data["timestamp"],
         )
-
-        return query_response

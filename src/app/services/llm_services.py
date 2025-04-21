@@ -231,6 +231,7 @@ class LLMService:
         Do not invent or improvise information. If the answer is not in the documents, be honest and clear about it.
         """
         prompt = f"Documents:\n{context}\n\nUser Question: {query}"
+        # Buat payload seperti biasa
         payload = {
             "model": env.OLLAMA_MODEL,
             "prompt": prompt,
@@ -238,10 +239,64 @@ class LLMService:
             "stream": stream_callback is not None,
         }
 
-        if not stream_callback:
-            return cls._handle_ollama_normal_response(payload)
-        else:
-            return cls._handle_ollama_streaming_response(payload, stream_callback)
+        # Log payload lengkap
+        logger.info(f"Ollama request URL: {env.OLLAMA_API_URL}")
+        logger.info(f"Ollama request payload: {json.dumps(payload, indent=2)}")
+
+        # Handle either streaming or normal response based on callback presence
+        try:
+            if stream_callback:
+                return cls._handle_ollama_streaming_response(payload, stream_callback)
+            else:
+                return cls._handle_ollama_normal_response(payload)
+        except Exception as e:
+            error_msg = f"Ollama request failed: {str(e)}"
+            logger.error(error_msg)
+            return f"Error: {str(e)}"  # Return error message as string instead of None
+
+    @classmethod
+    def _handle_ollama_streaming_response(
+        cls, payload: Dict[str, Any], stream_callback: Callable[[str], None]
+    ) -> str:
+        """Handle streaming response from Ollama API"""
+        full_response = ""
+
+        try:
+            with requests.post(
+                env.OLLAMA_API_URL, json=payload, stream=True
+            ) as response:
+                response.raise_for_status()
+
+                # Process streaming response
+                for line in response.iter_lines():
+                    if not line:
+                        continue
+
+                    try:
+                        # Decode the line
+                        line_text = line.decode("utf-8")
+
+                        # Parse JSON response
+                        chunk = json.loads(line_text)
+
+                        # Extract response content
+                        if "response" in chunk:
+                            content = chunk.get("response", "")
+                            if content:
+                                full_response += content
+                                stream_callback(full_response)
+
+                    except json.JSONDecodeError:
+                        continue
+                    except Exception as e:
+                        logger.warning(f"Error processing Ollama stream chunk: {e}")
+                        continue
+
+            return full_response
+        except Exception as e:
+            error_msg = f"Error in Ollama streaming response: {e}"
+            logger.error(error_msg)
+            return f"Error: {str(e)}"
 
     @classmethod
     def _handle_ollama_normal_response(cls, payload: Dict[str, Any]) -> str:
@@ -253,33 +308,6 @@ class LLMService:
             return result.get("response", "")
         except requests.RequestException as e:
             logger.error(f"Error calling Ollama: {e}")
-            return f"Error: {str(e)}"
-
-    @classmethod
-    def _handle_ollama_streaming_response(
-        cls, payload: Dict[str, Any], stream_callback: Callable[[str], None]
-    ) -> str:
-        """Handle streaming response from Ollama"""
-        full_response = ""
-
-        try:
-            with requests.post(
-                env.OLLAMA_API_URL, json=payload, stream=True
-            ) as response:
-                response.raise_for_status()
-                for line in response.iter_lines():
-                    if line:
-                        try:
-                            json_line = json.loads(line)
-                            token = json_line.get("response", "")
-                            full_response += token
-                            if stream_callback:
-                                stream_callback(full_response)
-                        except json.JSONDecodeError:
-                            continue
-            return full_response
-        except requests.RequestException as e:
-            logger.error(f"Error in streaming response: {e}")
             return f"Error: {str(e)}"
 
     @classmethod
