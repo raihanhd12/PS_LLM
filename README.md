@@ -105,6 +105,9 @@ API_HOST=0.0.0.0
 # Install alembic if not already installed
 pip install alembic
 
+# is no alembic folder
+alembic init --template generic src/database/migrations
+
 # Initialize alembic
 alembic init migrations
 

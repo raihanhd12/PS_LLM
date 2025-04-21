@@ -2,38 +2,16 @@ import json
 from contextlib import contextmanager
 from typing import List, Optional
 
-from sqlalchemy import Column, Integer, String, Text, create_engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import src.config.env as env
 from src.app.models.llm_models import ChatHistory, Source
+from src.database.factories.chat_factory import ChatHistoryModel
 
 # Create SQLAlchemy engine and session factory
 engine = create_engine(env.DB_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base class for SQLAlchemy models
-Base = declarative_base()
-
-
-# Define SQLAlchemy model for chat history
-class ChatHistoryModel(Base):
-    """SQLAlchemy model for chat history table"""
-
-    __tablename__ = "chat_history"
-
-    id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(String, nullable=False)
-    query = Column(Text, nullable=False)
-    response = Column(Text, nullable=False)
-    sources = Column(Text, nullable=False)  # JSON string of sources
-    title = Column(String, nullable=False)
-
-
-def init_db():
-    """Initialize database and create tables"""
-    Base.metadata.create_all(bind=engine)
 
 
 @contextmanager

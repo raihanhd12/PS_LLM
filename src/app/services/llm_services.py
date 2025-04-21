@@ -9,6 +9,7 @@ import src.config.env as env
 
 logger = logging.getLogger(__name__)
 
+
 class LLMProvider(str, Enum):
     DIGITAL_OCEAN = "Digital Ocean"
     OLLAMA = "Ollama"
@@ -328,8 +329,60 @@ class LLMService:
             return "Untitled Chat"
 
     @classmethod
-    def get_chat_history(cls) -> Dict[str, Any]:
-        """Get chat history"""
-        # This method should be implemented to retrieve chat history from the database
-        # For now, it returns an empty list
-        return []
+    def get_chat_history(cls):
+        """Get chat history from database"""
+        from src.app.services.database_services import load_chat_history_from_db
+
+        return load_chat_history_from_db()
+
+    @classmethod
+    def get_chat(cls, chat_id: int):
+        """Get a specific chat by ID"""
+        from src.app.services.database_services import get_chat_by_id
+
+        return get_chat_by_id(chat_id)
+
+    @classmethod
+    def process_query(
+        cls,
+        query,
+        context_limit,
+        selected_doc_id,
+        llm_provider,
+        stream_callback=None,
+        debug_mode=False,
+    ):
+        """Process a query and return response with sources"""
+        from src.app.models.llm_models import ChatHistory
+        from src.app.services.embedding_services import EmbeddingService
+        from src.app.services.database_services import save_chat_to_db
+
+        # Get context from embedding service
+        sources, context = EmbeddingService.retrieve_context(
+            query, context_limit, selected_doc_id
+        )
+
+        # Generate response using LLM
+        response = cls.generate_response(
+            context, query, llm_provider, stream_callback, debug_mode
+        )
+
+        # Generate title
+        title = cls.generate_chat_title(query, response, llm_provider)
+
+        # Create chat history entry
+        chat = ChatHistory(query=query, response=response, sources=sources, title=title)
+
+        # Save to database
+        chat_id = save_chat_to_db(chat)
+        chat.id = chat_id
+
+        # Return response data
+        return {
+            "id": chat_id,
+            "query": query,
+            "response": response,
+            "sources": sources,
+            "title": title,
+            "timestamp": chat.timestamp,
+        }

@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.config.env import API_HOST, API_PORT, DB_URL
-from src.database.session import init_db
+from src.app.services.database_services import init_db
 from src.routes.api.v1 import router
 
 # Configure logging
