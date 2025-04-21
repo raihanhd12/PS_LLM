@@ -8,8 +8,6 @@ from src.app.schemas.llm_schema import QueryRequest, QueryResponse
 # Define router for all endpoints
 router = APIRouter()
 
-# -------------------- Chat Endpoints -------------------- #
-
 
 @router.post("/chat/query", response_model=QueryResponse, tags=["chat"])
 async def process_query(query_request: QueryRequest):
@@ -25,6 +23,6 @@ async def get_chat_history():
 
 
 @router.get("/chat/history/{chat_id}", response_model=Dict[str, Any], tags=["chat"])
-async def get_chat(chat_id: int):
+async def get_chat_by_id(chat_id: int):
     """Get a specific chat by ID"""
-    return await LLMController.get_chat(chat_id)
+    return await LLMController.get_chat_by_id(chat_id)

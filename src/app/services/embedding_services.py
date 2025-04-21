@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Tuple
 
 import requests
 
-from src.config.env import EMBEDDING_API_KEY, EMBEDDING_API_URL
+import src.config.env as env
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +15,8 @@ class EmbeddingService:
     def setup_headers() -> Dict[str, str]:
         """Set up headers for API requests"""
         headers = {"Content-Type": "application/json"}
-        if EMBEDDING_API_KEY:
-            headers["X-API-Key"] = EMBEDDING_API_KEY
+        if env.EMBEDDING_API_KEY:
+            headers["X-API-Key"] = env.EMBEDDING_API_KEY
         return headers
 
     @classmethod
@@ -26,7 +26,7 @@ class EmbeddingService:
         if "headers" in kwargs:
             headers.update(kwargs.pop("headers"))
 
-        url = f"{EMBEDDING_API_URL}{endpoint}"
+        url = f"{env.EMBEDDING_API_URL}{endpoint}"
 
         try:
             response = requests.request(

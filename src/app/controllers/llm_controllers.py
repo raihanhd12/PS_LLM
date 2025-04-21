@@ -2,6 +2,7 @@ import logging
 from typing import Any, Callable, Dict, List, Optional
 
 from src.app.schemas.llm_schema import QueryRequest, QueryResponse, SourceResponse
+from src.app.services.database_services import DatabaseService
 from src.app.services.llm_services import LLMService
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,7 @@ class LLMController:
     @staticmethod
     def get_chat_history() -> List[Dict[str, Any]]:
         """Get all chat history"""
-        chat_history = LLMService.get_chat_history()
+        chat_history = DatabaseService.get_chat_history()
 
         # Convert to dict representation
         history_data = []
@@ -32,9 +33,9 @@ class LLMController:
         return history_data
 
     @staticmethod
-    def get_chat(chat_id: int) -> Optional[Dict[str, Any]]:
+    def get_chat_by_id(chat_id: int) -> Optional[Dict[str, Any]]:
         """Get a specific chat by ID"""
-        chat = LLMService.get_chat(chat_id)
+        chat = DatabaseService.get_chat_by_id(chat_id)
 
         if not chat:
             return None

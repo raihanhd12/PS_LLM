@@ -6,6 +6,9 @@ from typing import Any, Callable, Dict, Optional
 import requests
 
 import src.config.env as env
+from src.app.models.llm_models import ChatHistory
+from src.app.services.database_services import DatabaseService
+from src.app.services.embedding_services import EmbeddingService
 
 logger = logging.getLogger(__name__)
 
@@ -329,20 +332,6 @@ class LLMService:
             return "Untitled Chat"
 
     @classmethod
-    def get_chat_history(cls):
-        """Get chat history from database"""
-        from src.app.services.database_services import load_chat_history_from_db
-
-        return load_chat_history_from_db()
-
-    @classmethod
-    def get_chat(cls, chat_id: int):
-        """Get a specific chat by ID"""
-        from src.app.services.database_services import get_chat_by_id
-
-        return get_chat_by_id(chat_id)
-
-    @classmethod
     def process_query(
         cls,
         query,
@@ -352,10 +341,6 @@ class LLMService:
         stream_callback=None,
         debug_mode=False,
     ):
-        """Process a query and return response with sources"""
-        from src.app.models.llm_models import ChatHistory
-        from src.app.services.embedding_services import EmbeddingService
-        from src.app.services.database_services import save_chat_to_db
 
         # Get context from embedding service
         sources, context = EmbeddingService.retrieve_context(
@@ -374,7 +359,7 @@ class LLMService:
         chat = ChatHistory(query=query, response=response, sources=sources, title=title)
 
         # Save to database
-        chat_id = save_chat_to_db(chat)
+        chat_id = DatabaseService.save_chat_to_db(chat)
         chat.id = chat_id
 
         # Return response data
