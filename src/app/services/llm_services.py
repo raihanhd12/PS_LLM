@@ -9,7 +9,6 @@ import src.config.env as env
 
 logger = logging.getLogger(__name__)
 
-
 class LLMProvider(str, Enum):
     DIGITAL_OCEAN = "Digital Ocean"
     OLLAMA = "Ollama"
@@ -327,3 +326,10 @@ class LLMService:
         except requests.RequestException as e:
             logger.error(f"Error generating title: {e}")
             return "Untitled Chat"
+
+    @classmethod
+    def get_chat_history(cls) -> Dict[str, Any]:
+        """Get chat history"""
+        # This method should be implemented to retrieve chat history from the database
+        # For now, it returns an empty list
+        return []

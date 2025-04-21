@@ -7,7 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 import src.config.env as env
-from src.app.models.llm import ChatHistory, Source
+from src.app.models.llm_models import ChatHistory, Source
 
 # Create SQLAlchemy engine and session factory
 engine = create_engine(env.DB_URL)

@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-
 class Source(BaseModel):
     """Document source information"""
 
@@ -11,7 +10,6 @@ class Source(BaseModel):
     score: float
     metadata: Dict[str, Any] = {}
     text: str
-
 
 class ChatHistory(BaseModel):
     """Chat history entry model"""

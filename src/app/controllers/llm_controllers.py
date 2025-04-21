@@ -1,19 +1,19 @@
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
-from src.app.schemas.chat import QueryRequest, QueryResponse, SourceResponse
-from src.app.services.chat_service import ChatService
+from src.app.schemas.llm_schema import QueryRequest, QueryResponse, SourceResponse
+from src.app.services.llm_services import LLMService
 
 logger = logging.getLogger(__name__)
 
 
-class ChatController:
+class LLMController:
     """Controller for chat-related operations"""
 
     @staticmethod
     def get_chat_history() -> List[Dict[str, Any]]:
         """Get all chat history"""
-        chat_history = ChatService.get_chat_history()
+        chat_history = LLMService.get_chat_history()
 
         # Convert to dict representation
         history_data = []
@@ -34,7 +34,7 @@ class ChatController:
     @staticmethod
     def get_chat(chat_id: int) -> Optional[Dict[str, Any]]:
         """Get a specific chat by ID"""
-        chat = ChatService.get_chat(chat_id)
+        chat = LLMService.get_chat(chat_id)
 
         if not chat:
             return None
@@ -57,7 +57,7 @@ class ChatController:
         """Process a user query"""
         logger.info(f"Processing query: {query_request.query}")
 
-        response_data = ChatService.process_query(
+        response_data = LLMService.process_query(
             query=query_request.query,
             context_limit=query_request.context_limit,
             selected_doc_id=query_request.document_id,

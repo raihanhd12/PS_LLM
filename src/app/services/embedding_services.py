@@ -3,9 +3,10 @@ from typing import Dict, List, Optional, Tuple
 
 import requests
 
-from app.core.config import EMBEDDING_API_KEY, EMBEDDING_API_URL
+from src.config.env import EMBEDDING_API_KEY, EMBEDDING_API_URL
 
 logger = logging.getLogger(__name__)
+
 
 class EmbeddingService:
     """Simple proxy service for embedding API operations"""
