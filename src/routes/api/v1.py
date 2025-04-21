@@ -6,10 +6,10 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 
-from app.controllers.chat_controller import ChatController
-from app.schemas.chat import QueryRequest, QueryResponse
+from src.app.controllers.llm import ChatController
+from src.app.schemas.chat import QueryRequest, QueryResponse
 
-# Definisikan router untuk semua endpoints
+# Define router for all endpoints
 router = APIRouter()
 logger = logging.getLogger(__name__)
 

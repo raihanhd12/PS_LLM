@@ -6,11 +6,11 @@ from sqlalchemy import Column, Integer, String, Text, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-import app.core.config as config
-from app.models.chat import ChatHistory, Source
+import src.config.env as env
+from src.app.models.llm import ChatHistory, Source
 
 # Create SQLAlchemy engine and session factory
-engine = create_engine(config.DB_URL)
+engine = create_engine(env.DB_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for SQLAlchemy models
