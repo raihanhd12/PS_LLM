@@ -283,8 +283,9 @@ class LLMService:
                         if "response" in chunk:
                             content = chunk.get("response", "")
                             if content:
+                                # Only send the new content chunk to the callback
+                                stream_callback(content)
                                 full_response += content
-                                stream_callback(full_response)
 
                     except json.JSONDecodeError:
                         continue
@@ -292,7 +293,7 @@ class LLMService:
                         logger.warning(f"Error processing Ollama stream chunk: {e}")
                         continue
 
-            return full_response
+                return full_response
         except Exception as e:
             error_msg = f"Error in Ollama streaming response: {e}"
             logger.error(error_msg)

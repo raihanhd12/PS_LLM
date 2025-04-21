@@ -1,5 +1,8 @@
+import json
 import logging
 from typing import Any, Dict, List, Optional
+
+from fastapi.responses import StreamingResponse
 
 from src.app.schemas.llm_schema import QueryRequest, QueryResponse, SourceResponse
 from src.app.services.database_services import DatabaseService
@@ -74,3 +77,35 @@ class LLMController:
             title=response_data["title"],
             timestamp=response_data["timestamp"],
         )
+
+    @classmethod
+    async def process_streaming_query(cls, query_request: QueryRequest):
+        """Process a query with streaming response"""
+
+        async def event_generator():
+            buffer = ""
+
+            # Define callback to handle streaming chunks
+            def stream_callback(content):
+                nonlocal buffer
+                new_content = content[len(buffer) :]
+                buffer = content
+                return new_content
+
+            # Start event
+            yield 'data: {"status": "started"}\n\n'
+
+            # Process with streaming
+            response_data = LLMService.process_query(
+                query=query_request.query,
+                context_limit=query_request.context_limit,
+                selected_doc_id=query_request.document_id,
+                llm_provider=query_request.provider,
+                stream_callback=stream_callback,
+                debug_mode=query_request.debug_mode,
+            )
+
+            # Send complete data
+            yield f"data: {json.dumps({'status': 'complete', 'data': response_data})}\n\n"
+
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
